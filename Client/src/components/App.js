@@ -5,12 +5,11 @@ import Jumbotron from './Jumbotron';
 import Feed from './Feed';
 import Contact from './Contact';
 import About from './About';
-import data from '../data/data.json';
 import './App.css';
-
-const createMarkup = () => {
-  return { _html: 'I am dangerous.' };
-};
+import axios from 'axios';
+import {useAuth0} from '../react-auth0-spa';
+import history from '../history';
+import Loading from '../Loading';
 
 class App extends Component {
   constructor(props) {
@@ -22,31 +21,38 @@ class App extends Component {
     };
   }
 
-  UNSAFE_componentWillMount() {
-    this.setState({
-      feeds: data,
-    })
+  async componentDidMount() {
+    const url = 'http://localhost:3000/courses';
+    const response = await axios.get(url);
+    return this.setState({ feeds: response.data });
   }
 
   render() {
+    const { loading } = useAuth0;
+    if(loading) {
+      return <Loading />
+    } 
     return (
-      <Router>
-        <div className="container">
-          <Navigation />
-          <Jumbotron title={this.state.jumbotronTitle}/>
-          <Switch>
-            <Route path="/contact" component={Contact}/>
-            <Route path="/about" component={About}/>
-            <Route exact path="/" render={(props) => (
-              <Feed feeds={this.state.feeds} />
-            )} />
-          </Switch>
-          <div className="footer">
-            <p>&copy; {this.state.name} Inc.</p>
-            {/* <div dangerouslySetInnerHTML={ createMarkup() } /> */}
+      <React.StrictMode>
+        <Router history={history}>
+          <div className="container">
+            <Navigation />
+            <Jumbotron title={this.state.jumbotronTitle}/>
+            <Switch>
+              <Route path="/contact" component={Contact}/>
+              <Route path="/about" component={About}/>
+              <Route exact path="/" render={(props) => (
+                <Feed feeds={this.state.feeds} />
+              )} />
+            </Switch>
+            <div className="footer">
+              <p>&copy; {this.state.name} Inc.</p>
+              {/* <div dangerouslySetInnerHTML={ createMarkup() } /> */}
+            </div>
           </div>
-        </div>
-      </Router>
+        </Router>
+      </React.StrictMode>
+      
     )
   }
 }
